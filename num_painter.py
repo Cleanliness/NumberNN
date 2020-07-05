@@ -22,7 +22,7 @@ class Painter:
 
         @self.window.event
         def on_mouse_drag(x, y, dx, dy, button, modifiers):
-            if (button == mouse.LEFT) and (x in range(0, 29*self.pix_len)) and (y in range(0, 29*self.pix_len)):
+            if (button == mouse.LEFT) and (x in range(0, 28*self.pix_len)) and (y in range(0, 28*self.pix_len)):
 
                 # TODO make the brush bigger (circular)
                 self.grid[x // self.pix_len][y // self.pix_len].color = (0, 0, 0)
@@ -38,10 +38,10 @@ class Painter:
         self.grid = []
 
         # setting up rectangles and grid lines
-        for x in range(0, 29):
+        for x in range(0, 28):
             self.grid.append([])
 
-            for y in range(0, 29):
+            for y in range(0, 28):
                 rec = shapes.Rectangle(x * self.pix_len, y * self.pix_len, self.pix_len, self.pix_len, (255, 255, 255),
                                        batch=self.batch)
                 self.grid[x].append(rec)
