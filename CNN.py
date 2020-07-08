@@ -1,6 +1,6 @@
 import numpy as np
 from mnist import MNIST
-import mnist
+
 
 class NN:
 
@@ -57,7 +57,7 @@ class NN:
         for i in self.label_array:
             self.label_array[i].insert(i, 1)
 
-    def GD(self, learning_rate=1.2, file_dir="training_data"):
+    def GD(self, learning_rate=0.5, file_dir="training_data"):
         """Performs one gradient descent step on the NN given an image and label list.
         learning rate is a positive float representing how 'far' a step should be taken
 
@@ -112,7 +112,6 @@ class NN:
             # apply sigmoid to all sums and add it to the current activation matrix
             self.activations.insert(layer, self.act_f(l_sum))
 
-        # return np.where(self.activations[-1] == max(self.activations[-1]))[0][0] (returning max num code)
         return self.activations[-1]
 
     def __split_batch(self, lst, size):
@@ -151,27 +150,76 @@ class NN:
             new_b = old_b + LR*err_list[e]
             self.biases.insert(e, new_b)
 
-    def load(self):
+    def load(self, fname = "NN_save.txt"):
         """loads weights and biases from a text file"""
-        pass
+        f = open(fname, 'r')
+        lines = f.readlines()
 
-    def save(self):
-        """saves weights and biases to a text file"""
-        pass
+        self.__init__(eval(lines[1]))
+        self.biases = eval(lines[3])
+        self.weights = eval(lines[5])
+
+    def save(self, fname="NN_save.txt"):
+        """saves weights and biases to a text file.
+        Formatting:
+
+        a,b,c\n --> (a,b,c = # of neurons in corresponding hidden layers)
+
+        [np.array(a), np.array(b), ... ]\n --> string representation of biases in NN where a,b are string reps of lists
+                                                containing the biases of each layer(element of this list)
+
+        [np.array([np.array(c,d)), np.array(d,e)], ... ]\n --> string rep of weights in NN, c,d are string reps of
+                                                            lists containing the rows of each weight matrix
+        """
+        f = open(fname, 'w')
+
+        # writing number of hidden layers
+        f.write('----------------------hiddenLayers---------------------\n')
+        f.write("[")
+        for i in range(1, len(self.activations) - 1):
+            f.write(str(len(self.activations[i])) + ",")
+        f.write("]\n")
+
+        # writing string rep of bias array
+        f.write('----------------------biases---------------------\n')
+
+        f.write("[")
+        for i in range(0, len(self.biases)):
+            s = np.array2string(self.biases[i], separator=",")
+            f.write("np.array(" + np.array2string(self.biases[i], separator=",").replace("\n", "") + "),")
+        f.write("]\n")
+
+        f.write('----------------------weights---------------------\n')
+        # writing string rep of weight array
+        f.write("[")
+        for wm in range(0, len(self.weights)):
+            f.write("np.array([")
+            for row in range(0, len(self.weights[wm])):
+                f.write("np.array(" + np.array2string(self.weights[wm][row], separator=",").replace("\n", "") + "),")
+            f.write("]),")
+        f.write("]")
+
+        f.close()
+
 
     def test(self, file_dir="training_data"):
-        """tests the neural network, prints how much percentage it is correct"""
+        """tests the neural network given a directory, prints accuracy as a percentage"""
         print("loading testing data")
         test_data = MNIST(file_dir)
         img, lbl = test_data.load_testing()
 
         correct = 0
         for i in range(0, len(img)):
-            b = self.classify(img[i])
+            self.classify(img[i])
+            b = np.where(self.activations[-1] == max(self.activations[-1]))[0][0]
+            c = lbl[i]
             if (np.where(self.activations[-1] == max(self.activations[-1]))[0][0]) == lbl[i]:
                 correct += 1
 
-        print(str(correct / len(img)) + " % accuracy")
+        print(str((correct / len(img)) * 100) + " % accuracy")
+
+
+
 
 def sigmoid(x):
     """activation function for the network"""
@@ -183,9 +231,3 @@ def sigmoid_prime(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
 
-testNN = NN([10])
-testNN.GD()
-
-testNN.test()
-
-b = 12
