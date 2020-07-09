@@ -13,23 +13,21 @@ class Painter:
         self.pix_len = 12
         self.neural_network = CNN.NN([1])
         self.neural_network.load()
+        self.output_layer = []
+        self.outline = []
+        self.expected_val = None
+        self.exp_ui = pyglet.text.Label(("N/A"),
+                                  font_name='Times New Roman',
+                                  font_size=20,
+                                  x=420, y=12*14 - 50,
+                                  anchor_x='center', anchor_y='center', batch=self.batch)
 
         self.clear()
-
 
         # setting up gui of painter
         @self.window.event
         def on_draw():
-            classify_label = pyglet.text.Label('Classify',
-                                      font_name='Times New Roman',
-                                      font_size=20,
-                                      x=400, y=300,
-                                      anchor_x='center', anchor_y='center', batch=self.batch)
-            load_label = pyglet.text.Label('load',
-                                      font_name='Times New Roman',
-                                      font_size=20,
-                                      x=400, y=250,
-                                      anchor_x='center', anchor_y='center', batch=self.batch)
+
             self.window.clear()
             self.batch.draw()
 
@@ -42,13 +40,15 @@ class Painter:
                 img = self.convert_to_list()
                 res = self.neural_network.classify(img)
                 b = np.where(res == max(res))[0][0]
+                self.expected_val = b
                 print(b)
+
+                self.clear()
 
         @self.window.event
         def on_mouse_drag(x, y, dx, dy, button, modifiers):
             if (button == mouse.LEFT) and (x in range(1*self.pix_len, 27*self.pix_len)) and (y in range(1*self.pix_len, 27*self.pix_len)):
 
-                # TODO make the brush bigger (circular)
                 m_pos = (x // self.pix_len, y // self.pix_len)
 
                 self.grid[m_pos[0]][m_pos[1]].color = (0, 0, 0)
@@ -80,6 +80,23 @@ class Painter:
         pyglet.app.run()
 
     def clear(self):
+        classify_label = pyglet.text.Label('Classify',
+                                           font_name='Times New Roman',
+                                           font_size=20,
+                                           x=400, y=300,
+                                           anchor_x='center', anchor_y='center', batch=self.batch)
+        load_label = pyglet.text.Label('Load model',
+                                       font_name='Times New Roman',
+                                       font_size=20,
+                                       x=420, y=250,
+                                       anchor_x='center', anchor_y='center', batch=self.batch)
+
+        tr_label = pyglet.text.Label('Train',
+                                     font_name='Times New Roman',
+                                     font_size=20,
+                                     x=385, y=200,
+                                     anchor_x='center', anchor_y='center', batch=self.batch)
+
         self.grid = []
 
         # setting up rectangles
@@ -91,7 +108,29 @@ class Painter:
                                        batch=self.batch)
                 self.grid[x].append(rec)
 
-        # setting up buttons
+        # setting up neuron display in output layer
+        txt = []
+        for i in range(0, len(self.neural_network.activations[-1])):
+            act_col = int(self.neural_network.activations[-1][i] * 255 // 1)
+
+            self.outline.append(shapes.Circle(x=560, y=12*28 - 20- 33*i, radius=14, color=(255, 255, 255), batch=self.batch))
+            self.output_layer.append(shapes.Circle(x=560, y=12*28 -20 - 33*i, radius=13, color=(act_col, act_col, act_col), batch=self.batch))
+            txt.append(pyglet.text.Label(str(i),
+                                      font_name='Times New Roman',
+                                      font_size=11,
+                                      x=530, y=12*28 -20 - 33*i,
+                                      anchor_x='center', anchor_y='center', batch=self.batch))
+
+        rec = shapes.Rectangle(400, 12*14, 100, 300, color=(0, 0, 0), batch=self.batch)
+
+        # setting up expected output
+        self.exp_ui.delete()
+        self.exp_ui = pyglet.text.Label(str(self.expected_val),
+                                  font_name='Times New Roman',
+                                  font_size=40,
+                                  x=420, y=12*14- 50,
+                                  anchor_x='center', anchor_y='center', batch=self.batch)
+
 
     def convert_to_list(self):
         brightness = []
