@@ -1,5 +1,5 @@
 # NumberNN
-Neural network/Multilayer perceptron implementation in python with a GUI. Classifies numbers given a 28x28 pixel image. Saves/loads weights and biases to a text file. Can reach ~93% accuracy on MNIST test data.
+Neural network/Multilayer perceptron implementation in python with a GUI. Trains using gradient descent. Classifies numbers given a 28x28 pixel image. Saves/loads weights and biases to a text file. Can reach ~93% accuracy on MNIST test data.
 
 # Requirements
 - python 3.7+ 
